@@ -57,6 +57,7 @@ logs/
 *.key
 credentials
 aws-credentials
+<<<<<<< HEAD
 .aws/
 # Terraform generated files and state
 .terraform/
@@ -68,3 +69,6 @@ crash.*.log
 
 # Keep Terraform dependency lock file
 # Do not ignore .terraform.lock.hcl
+=======
+.aws/
+>>>>>>> origin/main
