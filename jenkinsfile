@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Check Jenkins Environment') {
+            steps {
+                sh '''
+                    echo "=== JAVA ==="
+                    java -version
+
+                    echo "=== MAVEN ==="
+                    mvn -version
+
+                    echo "=== ANSIBLE ==="
+                    ansible --version
+
+                    echo "=== TERRAFORM ==="
+                    terraform version
+
+                    echo "=== AWS CLI ==="
+                    aws --version
+                '''
+            }
+        }
+    }
+}
