@@ -11,14 +11,15 @@ pipeline {
                     echo "=== MAVEN ==="
                     mvn -version
 
-                    echo "=== ANSIBLE ==="
-                    ansible --version
+                    echo "=== REQUIRED TOOLS ==="
 
-                    echo "=== TERRAFORM ==="
-                    terraform version
-
-                    echo "=== AWS CLI ==="
-                    aws --version
+                    for tool in ansible terraform aws docker ssh; do
+                        if command -v $tool >/dev/null 2>&1; then
+                            echo "$tool: INSTALLED"
+                        else
+                            echo "$tool: NOT INSTALLED"
+                        fi
+                    done
                 '''
             }
         }
