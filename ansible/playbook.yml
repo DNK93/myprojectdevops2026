@@ -1,0 +1,64 @@
+---
+- name: Configure EC2 and deploy applications
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Update system packages
+      ansible.builtin.dnf:
+        update_cache: yes
+
+    - name: Install Docker
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create Docker Compose plugin directory
+      ansible.builtin.file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        mode: '0755'
+
+    - name: Install Docker Compose
+      ansible.builtin.get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
+
+    - name: Install Docker Buildx
+      ansible.builtin.get_url:
+        url: https://github.com/docker/buildx/releases/download/v0.19.3/buildx-v0.19.3.linux-amd64
+        dest: /usr/local/lib/docker/cli-plugins/docker-buildx
+        mode: '0755'
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: /opt/yearbook
+        state: directory
+        mode: '0755'
+
+    - name: Copy Docker Compose configuration
+      ansible.builtin.copy:
+        src: ../docker-compose.yml
+        dest: /opt/yearbook/docker-compose.yml
+
+    - name: Copy portfolio application
+      ansible.builtin.copy:
+        src: ../portfolio/
+        dest: /opt/yearbook/portfolio/
+
+    - name: Copy Java application
+      ansible.builtin.copy:
+        src: ../java/
+        dest: /opt/yearbook/java/
+
+    - name: Build and start applications
+      ansible.builtin.command:
+        cmd: docker compose up -d --build
+        chdir: /opt/yearbook
