@@ -1,27 +1,83 @@
+
 pipeline {
     agent any
 
+    environment {
+        EC2_HOST = '3.249.175.233'
+        EC2_USER = 'ec2-user'
+        APP_DIR = '/opt/yearbook'
+    }
+
     stages {
-        stage('Check Jenkins Environment') {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Java Application') {
+            steps {
+                sh 'mvn -f java/pom.xml clean package -DskipTests'
+            }
+        }
+
+        stage('Archive Build') {
+            steps {
+                archiveArtifacts artifacts: 'java/target/*.jar',
+                                 fingerprint: true
+            }
+        }
+
+        stage('Deploy Applications') {
+            steps {
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST \
+                            "mkdir -p $APP_DIR"
+
+                        tar --exclude='.git' \
+                            --exclude='java/target' \
+                            -czf project.tar.gz \
+                            docker-compose.yml portfolio java
+
+                        scp -o StrictHostKeyChecking=no \
+                            project.tar.gz \
+                            $EC2_USER@$EC2_HOST:/tmp/project.tar.gz
+
+                        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
+                            sudo tar -xzf /tmp/project.tar.gz -C $APP_DIR &&
+                            cd $APP_DIR &&
+                            sudo docker compose up -d --build
+                        "
+
+                        rm -f project.tar.gz
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
             steps {
                 sh '''
-                    echo "=== JAVA ==="
-                    java -version
+                    sleep 10
 
-                    echo "=== MAVEN ==="
-                    mvn -version
-
-                    echo "=== REQUIRED TOOLS ==="
-
-                    for tool in ansible terraform aws docker ssh; do
-                        if command -v $tool >/dev/null 2>&1; then
-                            echo "$tool: INSTALLED"
-                        else
-                            echo "$tool: NOT INSTALLED"
-                        fi
-                    done
+                    curl -f http://$EC2_HOST
+                    curl -f http://$EC2_HOST:8081
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment completed successfully!'
+            echo 'Portfolio: http://3.249.175.233'
+            echo 'Java App: http://3.249.175.233:8081'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the stage logs.'
         }
     }
 }
