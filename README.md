@@ -1,288 +1,180 @@
-# DevOps Modern End-to-End Deployment
+# Modern End-to-End DevOps Pipeline
 
-![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
-![Java](https://img.shields.io/badge/Java-21-orange)
-![Maven](https://img.shields.io/badge/Maven-Build-red)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
-![Ansible](https://img.shields.io/badge/Ansible-Automation-black)
-![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red)
+## Project Overview
 
-## Overview
+This project demonstrates the implementation of an end-to-end DevOps pipeline for deploying two web applications to AWS EC2.
 
-This project demonstrates an end-to-end DevOps workflow for deploying and managing multiple applications.
+The project uses Infrastructure as Code, configuration management, containerization and Continuous Integration/Continuous Deployment (CI/CD) to automate application deployment.
 
-The project combines containerization, source control, infrastructure as code, configuration management and CI/CD automation.
+The two applications deployed are:
 
-# Final DevOps Project
+1. A Portfolio Website built with HTML and CSS.
+2. A Java Yearbook Application built using Java and Maven.
 
-## End-to-End AWS DevOps Deployment
+Both applications run on a single AWS EC2 instance using Docker and Docker Compose.
 
-This project demonstrates an end-to-end DevOps workflow for deploying two applications to AWS using Infrastructure as Code, configuration management, containerization, and CI/CD.
+## Live Applications
 
-### Applications
+| Application | URL |
+|---|---|
+| Portfolio Website | http://3.249.175.233 |
+| Java Yearbook Application | http://3.249.175.233:8081 |
 
-1. Portfolio Web Application
-2. Java Application
+## Technologies Used
 
-### DevOps Workflow
+- AWS EC2 – Cloud hosting.
+- Terraform – Infrastructure provisioning.
+- Ansible – Server configuration and application deployment.
+- Docker – Application containerization.
+- Docker Compose – Managing multiple containers.
+- Jenkins – CI/CD automation.
+- Git and GitHub – Version control and source code management.
+- Java – Backend application.
+- Maven – Java build automation.
+- HTML and CSS – Portfolio frontend.
+- Linux – Server environment.
 
-GitHub → Jenkins → AWS EC2 → Docker Compose → Applications
+## Project Architecture
 
----
+The deployment process follows this workflow:
 
-##  Project Architecture
+1. Source code is stored in GitHub.
+2. Jenkins retrieves the project from GitHub.
+3. Maven builds the Java application.
+4. Jenkins archives the generated Java artifact.
+5. Jenkins connects to the AWS EC2 instance using SSH.
+6. Application files are transferred to the EC2 server.
+7. Docker Compose builds and starts the application containers.
+8. Both applications become accessible through their respective public ports.
+
+Terraform is used to provision the AWS infrastructure, while Ansible is used for server configuration and the initial application deployment.
+
+## Infrastructure Provisioning – Terraform
+
+Terraform provisions the AWS infrastructure required to host the applications.
+
+The infrastructure includes:
+
+- AWS VPC.
+- Public subnet.
+- Internet Gateway.
+- Route table and route table association.
+- Security group.
+- EC2 instance.
+- Public IP address.
+
+The security group allows the required application and administration traffic.
+
+| Port | Purpose |
+|---|---|
+| 22 | SSH access |
+| 80 | Portfolio Website |
+| 8081 | Java Application |
+
+## Configuration Management – Ansible
+
+Ansible is used to configure the EC2 instance and prepare it for application deployment.
+
+The Ansible playbook performs tasks including:
+
+- Updating system packages.
+- Installing Docker.
+- Starting the Docker service.
+- Installing Docker Compose and Buildx.
+- Transferring application files.
+- Transferring the Docker Compose configuration.
+- Building and starting the application containers.
+
+## Containerization – Docker and Docker Compose
+
+Both applications are containerized using Docker.
+
+Separate Dockerfiles are maintained for the applications.
+
+Docker Compose manages both services from a single configuration file.
+
+| Container | Port |
+|---|---|
+| Portfolio Application | 80 |
+| Java Yearbook Application | 8081 |
+
+Both containers are configured to restart automatically unless stopped.
+
+## CI/CD – Jenkins Pipeline
+
+Jenkins automates the build and deployment process.
+
+The pipeline is defined in the `jenkinsfile` located in the project root.
+
+### Pipeline Stages
+
+**1. Checkout**
+
+Jenkins retrieves the latest source code from the GitHub repository.
+
+**2. Build Java Application**
+
+Maven compiles and packages the Java application.
+
+**3. Archive Build**
+
+The generated Java JAR artifact is archived in Jenkins.
+
+**4. Deploy Applications**
+
+Jenkins connects to the EC2 instance through SSH, transfers the application files and executes Docker Compose to rebuild and start the applications.
+
+**5. Verify Deployment**
+
+Jenkins checks both application endpoints to confirm that the applications are responding.
+
+## Project Structure
 
 ```text
-                         GitHub
-                            |
-                            | git push
-                            v
-                        Jenkins
-                       (WSL/Ubuntu)
-                            |
-                            | SSH
-                            v
-                    AWS EC2 Server
-                  Created by Terraform
-                            |
-                         Ansible
-                            |
-                            v
-                     Docker Compose
-                       /          \
-                      /            \
-                     v              v
-              Portfolio App      Java App
-                 :8082             :8081
-
-
-Technologies Used
-- 
-| Technology     | Purpose                             |
-| -------------- | ----------------------------------- |
-| Git            | Version control                     |
-| GitHub         | Source code repository              |
-| Jenkins        | CI/CD automation                    |
-| Terraform      | AWS Infrastructure as Code          |
-| Ansible        | Server configuration and deployment |
-| Docker         | Application containerization        |
-| Docker Compose | Multi-container deployment          |
-| AWS EC2        | Application server                  |
-| AWS VPC        | Network infrastructure              |
-| Maven          | Java application build              |
-| Linux/WSL      | Development and Jenkins environment |
-
-
-Project Applications
-
-Portfolio Application
-
-The portfolio application is a web application served using Nginx.
-
-Port:
-
-8082
-
-Access:
-
-http://EC2-PUBLIC-IP:8082
-
-Java Application
-
-The Java application is packaged using Maven and deployed inside a Docker container.
-
-Port:
-
-8081
-
-Access:
-
-http://EC2-PUBLIC-IP:8081
-
-Project Structure
-
-final-devops-project/
+myprojectdevops2026/
 │
 ├── ansible/
-│   ├── inventory
-│   ├── setup.yml
-│   └── deploy.yml
+│   └── playbook.yml
 │
-├── terraform/
-│   ├── main.tf
-│   └── other Terraform files
-│
-├── java-app/
-│   ├── src/
+├── java/
+│   ├── Dockerfile
 │   ├── pom.xml
-│   └── Dockerfile
+│   └── src/
 │
 ├── portfolio/
+│   ├── Dockerfile
 │   ├── index.html
-│   ├── style.css
-│   └── Dockerfile
+│   └── style.css
+│
+├── terraform/
+│   └── main.tf
 │
 ├── docker-compose.yml
-├── Jenkinsfile
-├── README.md
-└── .gitignore
+├── jenkinsfile
+├── .gitignore
+└── README.md
+```
 
-Terraform state files, SSH private keys, environment files, and other sensitive files are excluded using .gitignore.
-Terraform Infrastructure
+## Deployment Results
 
-Terraform is used to create the AWS infrastructure required by the application.
+The project successfully demonstrates:
 
-AWS resources
+- Infrastructure provisioning with Terraform.
+- EC2 configuration with Ansible.
+- Docker image building and containerization.
+- Running multiple applications using Docker Compose.
+- Java application compilation using Maven.
+- Automated deployment through Jenkins.
+- Successful application availability through public EC2 endpoints.
 
-Terraform creates:
+The Jenkins pipeline completed successfully, including deployment and application verification.
 
-VPC
-Public subnet
-Internet Gateway
-Route table
-Route table association
-Security Group
-EC2 instance
-Ansible Configuration
+## GitHub Repository
 
-Ansible is used to configure the Terraform-created EC2 server.
+https://github.com/DNK93/myprojectdevops2026
 
-The Ansible configuration installs and configures:
+## Conclusion
 
-Docker
-Docker Compose
-Git
-Required server configuration
-Docker Deployment
+This project demonstrates how DevOps tools and practices can be integrated to automate infrastructure provisioning, configuration management, application building, containerization and deployment.
 
-Docker is used to containerize the applications.
-
-Docker Compose manages both application containers
-Jenkins CI/CD
-
-Jenkins is running on the WSL/Ubuntu environment.
-
-Jenkins is accessed through:
-
-http://localhost:8080
-
-Jenkins connects to the AWS EC2 deployment server using SSH.
-
-The EC2 SSH private key is stored securely on the Jenkins server and is not committed to GitHub.
-
-9. Jenkins Pipeline
-
-The Jenkins pipeline automates the deployment process.
-
-The pipeline is defined in:
-
-Jenkinsfile
-
-The deployment workflow is:
-
-GitHub
-   |
-   v
-Jenkins
-   |
-   v
-SSH to EC2
-   |
-   v
-git pull origin main
-   |
-   v
-docker-compose down
-   |
-   v
-docker-compose up -d --build
-   |
-   v
-Verify Containers
-
-Jenkins acts as the CI/CD controller while the AWS EC2 server performs the actual application deployment
-AWS Security Group
-
-The EC2 Security Group allows the required ports for administration and application access.
-
-Port	Purpose
-22	SSH
-80	HTTP
-8080	Jenkins
-8081	Java Application
-8082	Portfolio Application
-
-For a production environment, SSH and application ports should be restricted to trusted sources instead of allowing unrestricted internet access
-
-Final DevOps Workflow
-                         DEVELOPER
-                             |
-                             | git push
-                             v
-                          GITHUB
-                             |
-                             v
-                         JENKINS
-                       WSL/Ubuntu
-                             |
-                             | SSH
-                             v
-                    AWS EC2 SERVER
-                   Created by Terraform
-                             |
-                          Ansible
-                             |
-                             v
-                       Docker Engine
-                             |
-                             v
-                     Docker Compose
-                        /         \
-                       /           \
-                      v             v
-                Portfolio App    Java App
-                   :8082           :8081
-
-Tool Responsibilities
-
-Tool	Responsibility
-GitHub	        Source code management
-Jenkins 	CI/CD automation
-Terraform	Infrastructure provisioning
-Ansible 	EC2 configuration
-Docker	        Containerization
-Docker Compose	Application deployment
-AWS EC2 	Application hosting
-Maven	        Java application build
-
-Project Goals Achieved
- Git and GitHub source control
- AWS infrastructure with Terraform
- AWS VPC
- Public subnet
- Internet Gateway
- Route table
- Security Group
- EC2 deployment
- Ansible server configuration
- Docker installation
- Docker Compose installation
- Portfolio application containerization
- Java application containerization
- Docker Compose deployment
- Jenkins installation
- Jenkins SSH connection to EC2
- Jenkins CI/CD pipeline
- Automated deployment to EC2
- GitHub → Jenkins → EC2 workflow
- Running Portfolio application
- Running Java application
-
-Conclusion
-
-This project demonstrates a complete end-to-end DevOps deployment workflow using:
-
-GitHub + Jenkins + Terraform + Ansible + Docker + Docker Compose + AWS EC2
-
-The final deployment process allows application changes to move from source control to a running AWS environment through an automated CI/CD workflow
-
+The final result is a working deployment of two applications on AWS EC2, supported by a Jenkins CI/CD pipeline.
